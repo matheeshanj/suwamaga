@@ -1,5 +1,26 @@
 import { useState } from "react";
 
+// ─── Supabase client (replace with your own URL + anon key) ──────────────────
+const SUPABASE_URL = "https://ccuwjdxydneocxomcej.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjdXdqZHh5ZG5lb2NyeG9tY2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2ODU5MzEsImV4cCI6MjA5NzI2MTkzMX0.2UN2GhIie01vqZUFXCWnn8Pv83PpITernuPDYVkCha8";
+
+async function supabase(table, filters = {}) {
+  let url = `${SUPABASE_URL}/rest/v1/${table}?select=*`;
+  if (filters.eq) {
+    Object.entries(filters.eq).forEach(([k, v]) => {
+      url += `&${k}=eq.${encodeURIComponent(v)}`;
+    });
+  }
+  if (filters.order) url += `&order=${filters.order}`;
+  const res = await fetch(url, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+  });
+  return res.json();
+}
+
 // ─── colour & type tokens ────────────────────────────────────────────────────
 const T = {
   bg:        "#F7FAFA",
