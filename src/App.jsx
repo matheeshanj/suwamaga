@@ -220,6 +220,149 @@ function ArticleDetailScreen({ article, onBack }) {
     </div>
   );
 
+  const WarningBox = ({ items }) => (
+    items?.length > 0 ? (
+      <div style={{ background:"#FFF3F3", border:`1px solid ${T.emergency}`, borderRadius:10, padding:"12px 14px", marginBottom:20 }}>
+        <div style={{ fontWeight:800, color:T.emergency, marginBottom:6, fontSize:14, fontFamily:"Noto Sans Sinhala,sans-serif" }}>⚠️ අනතුරු ලකුණු — වහාම රෝහලට</div>
+        {items.map((w,i) => <div key={i} style={{ fontSize:14, color:T.emergency, marginBottom:4, fontFamily:"Noto Sans Sinhala,sans-serif" }}>• {w}</div>)}
+      </div>
+    ) : null
+  );
+
+  const SeeDoctorBox = ({ text }) => (
+    text ? (
+      <div style={{ background:T.amberLight, border:`1px solid ${T.amber}`, borderRadius:10, padding:"12px 14px", marginBottom:20 }}>
+        <div style={{ fontWeight:800, color:T.amber, marginBottom:4, fontSize:14, fontFamily:"Noto Sans Sinhala,sans-serif" }}>🩺 වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?</div>
+        <p style={{ fontSize:14, color:"#4E3A00", fontFamily:"Noto Sans Sinhala,sans-serif", lineHeight:1.6, margin:0 }}>{text}</p>
+      </div>
+    ) : null
+  );
+
+  const TextSection = ({ title, text }) => (
+    text ? (
+      <Section title={title}>
+        <p style={{ fontSize:15, color:T.text, lineHeight:1.7, fontFamily:"Noto Sans Sinhala,sans-serif" }}>{text}</p>
+      </Section>
+    ) : null
+  );
+
+  const ListSection = ({ title, items }) => (
+    items?.length > 0 ? (
+      <Section title={title}>{renderList(items)}</Section>
+    ) : null
+  );
+
+  // ── per-category layouts ──────────────────────────────────────────────────
+  function renderSections() {
+    const c = a.category;
+
+    if (c === "diseases") return (<>
+      <TextSection  title="1. දළ විශ්ලේෂණය"           text={a.overview} />
+      <ListSection  title="2. ලක්ෂණ"                   items={a.symptoms} />
+      <ListSection  title="3. හේතු"                    items={a.causes} />
+      <WarningBox   items={a.warning_signs} />
+      <TextSection  title="4. ප්‍රතිකාරය"              text={a.treatment} />
+      <ListSection  title="5. වැළැක්වීම"               items={a.prevention} />
+      <SeeDoctorBox text={a.see_doctor} />
+    </>);
+
+    if (c === "symptoms") return (<>
+      <TextSection  title="1. දළ විශ්ලේෂණය"           text={a.overview} />
+      <ListSection  title="2. හේතු"                    items={a.causes} />
+      <WarningBox   items={a.warning_signs} />
+      <ListSection  title="3. ස්ව-රැකවරණ"              items={a.selfcare} />
+      <SeeDoctorBox text={a.see_doctor} />
+    </>);
+
+    if (c === "medicines") return (<>
+      <TextSection  title="1. දළ විශ්ලේෂණය"           text={a.overview} />
+      <ListSection  title="2. භාවිතා"                  items={a.symptoms} />
+      <TextSection  title="3. මාත්‍රාව"                text={a.treatment} />
+      <ListSection  title="4. අතුරු ආබාධ"              items={a.selfcare} />
+      <WarningBox   items={a.warning_signs} />
+      <SeeDoctorBox text={a.see_doctor} />
+    </>);
+
+    if (c === "tests") return (<>
+      <TextSection  title="1. දළ විශ්ලේෂණය"           text={a.overview} />
+      <ListSection  title="2. මෙය අවශ්‍ය වන්නේ කවදාද?" items={a.causes} />
+      <ListSection  title="3. සූදානම"                  items={a.selfcare} />
+      <TextSection  title="4. ප්‍රතිඵල තේරුම"         text={a.treatment} />
+      <SeeDoctorBox text={a.see_doctor} />
+    </>);
+
+    if (c === "pregnancy") return (<>
+      <TextSection  title="1. දළ විශ්ලේෂණය"           text={a.overview} />
+      <ListSection  title="2. ලක්ෂණ"                   items={a.symptoms} />
+      <WarningBox   items={a.warning_signs} />
+      <ListSection  title="3. ස්ව-රැකවරණ"              items={a.selfcare} />
+      <ListSection  title="4. ඉඟි"                     items={a.prevention} />
+      <SeeDoctorBox text={a.see_doctor} />
+    </>);
+
+    if (c === "child") return (<>
+      <TextSection  title="1. දළ විශ්ලේෂණය"           text={a.overview} />
+      <ListSection  title="2. ලක්ෂණ"                   items={a.symptoms} />
+      <ListSection  title="3. හේතු"                    items={a.causes} />
+      <WarningBox   items={a.warning_signs} />
+      <ListSection  title="4. ස්ව-රැකවරණ"              items={a.selfcare} />
+      <SeeDoctorBox text={a.see_doctor} />
+    </>);
+
+    if (c === "mental") return (<>
+      <TextSection  title="1. දළ විශ්ලේෂණය"           text={a.overview} />
+      <ListSection  title="2. ලක්ෂණ"                   items={a.symptoms} />
+      <ListSection  title="3. හේතු / අවදානම් සාධක"    items={a.causes} />
+      <ListSection  title="4. ස්ව-රැකවරණ"              items={a.selfcare} />
+      <ListSection  title="5. වැළැක්වීම"               items={a.prevention} />
+      <SeeDoctorBox text={a.see_doctor} />
+    </>);
+
+    if (c === "firstaid") return (<>
+      <TextSection  title="1. දළ විශ්ලේෂණය"           text={a.overview} />
+      <ListSection  title="2. ලකුණු හඳුනා ගන්නේ කෙසේද?" items={a.symptoms} />
+      <ListSection  title="3. ප්‍රථමාධාර පියවර"        items={a.selfcare} />
+      <WarningBox   items={a.warning_signs} />
+      <SeeDoctorBox text={a.see_doctor} />
+    </>);
+
+    if (c === "nutrition") return (<>
+      <TextSection  title="1. දළ විශ්ලේෂණය"           text={a.overview} />
+      <ListSection  title="2. වැදගත්කම"                items={a.causes} />
+      <ListSection  title="3. ඉඟි සහ සූදානම"           items={a.selfcare} />
+      <ListSection  title="4. සෞඛ්‍යසම්පන්න පුරුදු"   items={a.prevention} />
+    </>);
+
+    if (c === "prevention") return (<>
+      <TextSection  title="1. දළ විශ්ලේෂණය"           text={a.overview} />
+      <ListSection  title="2. අවදානම් සාධක"            items={a.causes} />
+      <ListSection  title="3. වැළැක්වීමේ පියවර"        items={a.prevention} />
+      <ListSection  title="4. සෞඛ්‍ය සම්පන්න ජීවන රටාව" items={a.selfcare} />
+    </>);
+
+    if (c === "sexual") return (<>
+      <TextSection  title="1. දළ විශ්ලේෂණය"           text={a.overview} />
+      <ListSection  title="2. ලක්ෂණ"                   items={a.symptoms} />
+      <ListSection  title="3. හේතු"                    items={a.causes} />
+      <WarningBox   items={a.warning_signs} />
+      <ListSection  title="4. ස්ව-රැකවරණ"              items={a.selfcare} />
+      <ListSection  title="5. වැළැක්වීම"               items={a.prevention} />
+      <SeeDoctorBox text={a.see_doctor} />
+    </>);
+
+    // fallback — show everything
+    return (<>
+      <TextSection  title="1. දළ විශ්ලේෂණය"           text={a.overview} />
+      <ListSection  title="2. ලක්ෂණ"                   items={a.symptoms} />
+      <ListSection  title="3. හේතු"                    items={a.causes} />
+      <WarningBox   items={a.warning_signs} />
+      <TextSection  title="4. ප්‍රතිකාරය"              text={a.treatment} />
+      <ListSection  title="5. ස්ව-රැකවරණ"              items={a.selfcare} />
+      <ListSection  title="6. වැළැක්වීම"               items={a.prevention} />
+      <SeeDoctorBox text={a.see_doctor} />
+    </>);
+  }
+
   return (
     <div>
       <BackBtn onClick={onBack}/>
@@ -227,57 +370,7 @@ function ArticleDetailScreen({ article, onBack }) {
       <h1 style={{ fontSize:22, fontWeight:800, color:T.text, margin:"8px 0 12px", fontFamily:"Noto Sans Sinhala,sans-serif", lineHeight:1.3 }}>{a.title_si}</h1>
       {a.title_en && <div style={{ fontSize:13, color:T.muted, marginBottom:12 }}>{a.title_en}</div>}
       {(a.reviewer || a.reviewed_date) && <TrustBar reviewer={a.reviewer || "—"} reviewed={a.reviewed_date || "—"}/>}
-
-      {a.overview && (
-        <Section title="1. දළ විශ්ලේෂණය">
-          <p style={{ fontSize:15, color:T.text, lineHeight:1.7, fontFamily:"Noto Sans Sinhala,sans-serif" }}>{a.overview}</p>
-        </Section>
-      )}
-
-      {a.symptoms?.length > 0 && (
-        <Section title="2. ලක්ෂණ / භාවිතා">
-          {renderList(a.symptoms)}
-        </Section>
-      )}
-
-      {a.causes?.length > 0 && (
-        <Section title="3. හේතු">
-          {renderList(a.causes)}
-        </Section>
-      )}
-
-      {a.warning_signs?.length > 0 && (
-        <div style={{ background:"#FFF3F3", border:`1px solid ${T.emergency}`, borderRadius:10, padding:"12px 14px", marginBottom:20 }}>
-          <div style={{ fontWeight:800, color:T.emergency, marginBottom:6, fontSize:14, fontFamily:"Noto Sans Sinhala,sans-serif" }}>⚠️ අනතුරු ලකුණු — වහාම රෝහලට</div>
-          {a.warning_signs.map((w,i) => <div key={i} style={{ fontSize:14, color:T.emergency, marginBottom:4, fontFamily:"Noto Sans Sinhala,sans-serif" }}>• {w}</div>)}
-        </div>
-      )}
-
-      {a.treatment && (
-        <Section title="4. ප්‍රතිකාරය / මාත්‍රාව">
-          <p style={{ fontSize:15, color:T.text, lineHeight:1.7, fontFamily:"Noto Sans Sinhala,sans-serif" }}>{a.treatment}</p>
-        </Section>
-      )}
-
-      {a.selfcare?.length > 0 && (
-        <Section title="5. ස්ව-රැකවරණ / අතුරු ආබාධ">
-          {renderList(a.selfcare)}
-        </Section>
-      )}
-
-      {a.prevention?.length > 0 && (
-        <Section title="6. වැළැක්වීම">
-          {renderList(a.prevention)}
-        </Section>
-      )}
-
-      {a.see_doctor && (
-        <div style={{ background:T.amberLight, border:`1px solid ${T.amber}`, borderRadius:10, padding:"12px 14px", marginBottom:20 }}>
-          <div style={{ fontWeight:800, color:T.amber, marginBottom:4, fontSize:14, fontFamily:"Noto Sans Sinhala,sans-serif" }}>🩺 වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?</div>
-          <p style={{ fontSize:14, color:"#4E3A00", fontFamily:"Noto Sans Sinhala,sans-serif", lineHeight:1.6, margin:0 }}>{a.see_doctor}</p>
-        </div>
-      )}
-
+      {renderSections()}
       {(a.reviewer || a.reviewed_date) && (
         <div style={{ background:T.tealLight, borderRadius:10, padding:"10px 14px", fontSize:12, color:T.muted, fontFamily:"Noto Sans Sinhala,sans-serif", lineHeight:1.6 }}>
           {a.reviewer && <><strong>Reviewed by:</strong> {a.reviewer}<br/></>}
