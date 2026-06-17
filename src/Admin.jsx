@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 // ─── Supabase credentials ────────────────────────────────────────────────────
 const SUPABASE_URL = "https://hjhjrbxrweozpwwpzwpx.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqaGpyYnhyd2VvenB3d3B6d3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDI2MDYsImV4cCI6MjA5NzI3ODYwNn0.U3CS-ALwQGPBhLbKUz1n2sckzx_jHPsWkGDSZH0jluI";
-const ADMIN_PASSWORD = "YOUR_ADMIN_PASSWORD"; // change this!
+const ADMIN_PASSWORD = "19065mnj"; // change this!
 
 // ─── Supabase helpers ─────────────────────────────────────────────────────────
 async function dbGet(table) {
