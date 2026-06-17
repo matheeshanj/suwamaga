@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 // ─── Replace these with your Supabase credentials ────────────────────────────
-const SUPABASE_URL = "https://ccuwjdxydneocrxomcej.supabase.co/rest/v1/";
+const SUPABASE_URL = "https://hjhjrbxrweozpwwpzwpx.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjdXdqZHh5ZG5lb2NyeG9tY2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2ODU5MzEsImV4cCI6MjA5NzI2MTkzMX0.2UN2GhIie01vqZUFXCWnn8Pv83PpITernuPDYVkCha8";
 const ADMIN_PASSWORD = "19065mnj"; // change this!
 
