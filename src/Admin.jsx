@@ -307,29 +307,130 @@ function ArticlesTab() {
         <Select label="CATEGORY *" value={form.category} onChange={v => setForm(p => ({ ...p, category: v }))}
           options={ARTICLE_CATEGORIES} />
         <CategoryHint category={form.category} />
-        <Input label="TITLE (SINHALA) *" value={form.title_si} onChange={f("title_si")} placeholder="රෝගයේ නම සිංහලෙන්" />
-        <Input label="TITLE (ENGLISH)" value={form.title_en} onChange={f("title_en")} placeholder="Name in English" />
-        <CheckboxField label="FEATURED ON HOME?" checked={form.featured} onChange={v => setForm(p => ({ ...p, featured: v }))} caption="Show on home screen" />
-        <Textarea label="SUMMARY (short, 1–2 lines)" value={form.summary} onChange={f("summary")} rows={2}
-          placeholder="Short description for list view..." hint="Shown in search results and category lists" />
-        <Textarea label="OVERVIEW" value={form.overview} onChange={f("overview")} rows={4}
-          placeholder="Full description of this topic..." hint="Main explanation paragraph" />
-        <Textarea label="SYMPTOMS (one per line)" value={form.symptoms} onChange={f("symptoms")}
-          placeholder={"උෂ්ණත්වය\nහිස්වේදනාව\nශ්වාස අපහසුව"} hint="For medicines: uses. For tests: why it's needed. One item per line." />
-        <Textarea label="CAUSES (one per line)" value={form.causes} onChange={f("causes")}
-          placeholder={"වෛරස්\nබැක්ටීරියා"} hint="For nutrition/prevention: risk factors. One per line." />
-        <Textarea label="WARNING SIGNS (one per line)" value={form.warning_signs} onChange={f("warning_signs")}
-          placeholder={"ලේ ගැලීම\nශ්වාස අපහසුව"} />
-        <Textarea label="TREATMENT / DOSAGE / WHAT RESULTS MEAN" value={form.treatment} onChange={f("treatment")} rows={4}
-          placeholder="Treatment description, medicine dosage, or how to read test results..." hint="Free text paragraph" />
-        <Textarea label="SELF CARE / SIDE EFFECTS / PREPARATION (one per line)" value={form.selfcare} onChange={f("selfcare")}
-          placeholder={"විවේකය\nජලය බොන්න"} hint="For medicines: side effects. For tests: preparation steps. One per line." />
-        <Textarea label="PREVENTION / LIFESTYLE TIPS (one per line)" value={form.prevention} onChange={f("prevention")}
-          placeholder={"මදුරු දැල\nජලය ගොඩ නොකරන්න"} />
-        <Textarea label="WHEN TO SEE A DOCTOR" value={form.see_doctor} onChange={f("see_doctor")} rows={2}
-          placeholder="Describe conditions that need urgent care..." hint="Free text — emergency signs and thresholds" />
-        <Input label="REVIEWER NAME & TITLE" value={form.reviewer} onChange={f("reviewer")} placeholder="Dr. Name, MBBS, MD, Hospital" />
-        <Input label="REVIEWED DATE" value={form.reviewed_date} onChange={f("reviewed_date")} type="date" />
+
+{/* ── dynamic fields based on category ── */}
+{(() => {
+  const c = form.category;
+
+  // which fields to show per category
+  const show = {
+    symptoms:      ["diseases","medicines","pregnancy","child","sexual","firstaid"].includes(c),
+    causes:        ["diseases","symptoms","tests","pregnancy","child","mental","sexual"].includes(c),
+    warning_signs: ["diseases","symptoms","medicines","pregnancy","child","sexual","firstaid"].includes(c),
+    treatment:     ["diseases","medicines","tests"].includes(c),
+    selfcare:      ["diseases","symptoms","medicines","tests","pregnancy","child","mental","firstaid"].includes(c),
+    prevention:    ["diseases","pregnancy","mental","nutrition","prevention","sexual"].includes(c),
+    see_doctor:    ["diseases","symptoms","medicines","tests","pregnancy","child","mental","firstaid","sexual"].includes(c),
+  };
+
+  // field labels per category
+  const labels = {
+    symptoms: {
+      diseases:"ලක්ෂණ (Symptoms) — one per line",
+      medicines:"භාවිතා (Uses) — one per line",
+      pregnancy:"ලක්ෂණ (Symptoms) — one per line",
+      child:"ලක්ෂණ (Symptoms) — one per line",
+      sexual:"ලක්ෂණ (Symptoms) — one per line",
+      firstaid:"ලකුණු හඳුනා ගන්නේ කෙසේද? — one per line",
+    },
+    causes: {
+      diseases:"හේතු (Causes) — one per line",
+      symptoms:"හේතු (Causes) — one per line",
+      tests:"අවශ්‍ය වන්නේ කවදාද? (Why needed) — one per line",
+      pregnancy:"හේතු / අවදානම් සාධක — one per line",
+      child:"හේතු (Causes) — one per line",
+      mental:"හේතු / අවදානම් සාධක — one per line",
+      sexual:"හේතු (Causes) — one per line",
+      nutrition:"වැදගත්කම (Why important) — one per line",
+      prevention:"අවදානම් සාධක (Risk factors) — one per line",
+    },
+    warning_signs: {
+      diseases:"⚠️ අනතුරු ලකුණු (Warning Signs) — one per line",
+      symptoms:"⚠️ අනතුරු ලකුණු (Warning Signs) — one per line",
+      medicines:"⚠️ දරුණු අතුරු ආබාධ (Serious warnings) — one per line",
+      pregnancy:"⚠️ අනතුරු ලකුණු (Warning Signs) — one per line",
+      child:"⚠️ අනතුරු ලකුණු (Warning Signs) — one per line",
+      sexual:"⚠️ අනතුරු ලකුණු (Warning Signs) — one per line",
+      firstaid:"⚠️ අනතුරු ලකුණු (Warning Signs) — one per line",
+    },
+    treatment: {
+      diseases:"ප්‍රතිකාරය (Treatment)",
+      medicines:"මාත්‍රාව (Dosage & How to take)",
+      tests:"ප්‍රතිඵල තේරුම (What results mean)",
+    },
+    selfcare: {
+      diseases:"ස්ව-රැකවරණ (Self Care) — one per line",
+      symptoms:"ස්ව-රැකවරණ (Self Care) — one per line",
+      medicines:"අතුරු ආබාධ (Side Effects) — one per line",
+      tests:"සූදානම (How to prepare) — one per line",
+      pregnancy:"ස්ව-රැකවරණ (Self Care) — one per line",
+      child:"ස්ව-රැකවරණ / ගෙදර ප්‍රතිකාරය — one per line",
+      mental:"ස්ව-රැකවරණ / Coping tips — one per line",
+      firstaid:"ප්‍රථමාධාර පියවර (Steps) — one per line",
+    },
+    prevention: {
+      diseases:"වැළැක්වීම (Prevention) — one per line",
+      pregnancy:"ඉඟි (Tips) — one per line",
+      mental:"වැළැක්වීම (Prevention) — one per line",
+      nutrition:"සෞඛ්‍යසම්පන්න පුරුදු (Healthy habits) — one per line",
+      prevention:"වැළැක්වීමේ පියවර (Prevention steps) — one per line",
+      sexual:"වැළැක්වීම (Prevention) — one per line",
+    },
+    see_doctor: {
+      diseases:"වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?",
+      symptoms:"වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?",
+      medicines:"වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?",
+      tests:"වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?",
+      pregnancy:"වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?",
+      child:"වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?",
+      mental:"වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?",
+      firstaid:"වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?",
+      sexual:"වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?",
+    },
+  };
+
+  return (<>
+    <Textarea label="SUMMARY (1–2 lines for list view)" value={form.summary} onChange={f("summary")} rows={2}
+      placeholder="Short description shown in category list..." hint="Shown under title in article list" />
+    <Textarea label="OVERVIEW" value={form.overview} onChange={f("overview")} rows={4}
+      placeholder="Main explanation paragraph..." hint="First thing the reader sees" />
+
+    {show.symptoms && (
+      <Textarea label={labels.symptoms[c] || "ලක්ෂණ — one per line"} value={form.symptoms} onChange={f("symptoms")}
+        placeholder={"item 1\nitem 2\nitem 3"} />
+    )}
+
+    {show.causes && (
+      <Textarea label={labels.causes[c] || "හේතු — one per line"} value={form.causes} onChange={f("causes")}
+        placeholder={"item 1\nitem 2\nitem 3"} />
+    )}
+
+    {show.warning_signs && (
+      <Textarea label={labels.warning_signs[c] || "⚠️ අනතුරු ලකුණු — one per line"} value={form.warning_signs} onChange={f("warning_signs")}
+        placeholder={"warning 1\nwarning 2"} />
+    )}
+
+    {show.treatment && (
+      <Textarea label={labels.treatment[c] || "ප්‍රතිකාරය"} value={form.treatment} onChange={f("treatment")} rows={4}
+        placeholder="Free text paragraph..." hint="Free text — not a list" />
+    )}
+
+    {show.selfcare && (
+      <Textarea label={labels.selfcare[c] || "ස්ව-රැකවරණ — one per line"} value={form.selfcare} onChange={f("selfcare")}
+        placeholder={"item 1\nitem 2\nitem 3"} />
+    )}
+
+    {show.prevention && (
+      <Textarea label={labels.prevention[c] || "වැළැක්වීම — one per line"} value={form.prevention} onChange={f("prevention")}
+        placeholder={"item 1\nitem 2\nitem 3"} />
+    )}
+
+    {show.see_doctor && (
+      <Textarea label={labels.see_doctor[c] || "වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?"} value={form.see_doctor} onChange={f("see_doctor")} rows={2}
+        placeholder="Describe when to seek urgent care..." hint="Free text — not a list" />
+    )}
+  </>);
+})()}
         <SaveBtn onClick={save} saving={saving} />
         {editing !== "new" && <DeleteBtn onClick={() => del(editing)} />}
       </SectionCard>
