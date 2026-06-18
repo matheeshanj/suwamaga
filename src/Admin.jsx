@@ -390,6 +390,8 @@ function ArticlesTab() {
   };
 
   return (<>
+<Input label="TITLE (SINHALA) *" value={form.title_si} onChange={f("title_si")} placeholder="රෝගයේ නම සිංහලෙන්" />
+<Input label="TITLE (ENGLISH)" value={form.title_en} onChange={f("title_en")} placeholder="Name in English" />
     <Textarea label="SUMMARY (1–2 lines for list view)" value={form.summary} onChange={f("summary")} rows={2}
       placeholder="Short description shown in category list..." hint="Shown under title in article list" />
     <Textarea label="OVERVIEW" value={form.overview} onChange={f("overview")} rows={4}
