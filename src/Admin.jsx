@@ -431,6 +431,8 @@ function ArticlesTab() {
       <Textarea label={labels.see_doctor[c] || "වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?"} value={form.see_doctor} onChange={f("see_doctor")} rows={2}
         placeholder="Describe when to seek urgent care..." hint="Free text — not a list" />
     )}
+<Input label="REVIEWER NAME & TITLE" value={form.reviewer} onChange={f("reviewer")} placeholder="Dr. Name, MBBS, MD, Hospital" />
+    <Input label="REVIEWED DATE" value={form.reviewed_date} onChange={f("reviewed_date")} type="date" />
   </>);
 })()}
         <SaveBtn onClick={save} saving={saving} />
