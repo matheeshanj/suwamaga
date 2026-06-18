@@ -308,11 +308,9 @@ function ArticlesTab() {
           options={ARTICLE_CATEGORIES} />
         <CategoryHint category={form.category} />
 
-{/* ── dynamic fields based on category ── */}
 {(() => {
   const c = form.category;
 
-  // which fields to show per category
   const show = {
     symptoms:      ["diseases","medicines","pregnancy","child","sexual","firstaid"].includes(c),
     causes:        ["diseases","symptoms","tests","pregnancy","child","mental","sexual"].includes(c),
@@ -323,11 +321,10 @@ function ArticlesTab() {
     see_doctor:    ["diseases","symptoms","medicines","tests","pregnancy","child","mental","firstaid","sexual"].includes(c),
   };
 
-  // field labels per category
   const labels = {
     symptoms: {
       diseases:"ලක්ෂණ (Symptoms) — one per line",
-      medicines:"භාවිතා (Uses) — one per line",
+      medicines:"ඖෂධය භාවිතා කරන ප්‍රධාන රෝගී තත්ත්වයන් (Approved Uses & Indications) — one per line",
       pregnancy:"ලක්ෂණ (Symptoms) — one per line",
       child:"ලක්ෂණ (Symptoms) — one per line",
       sexual:"ලක්ෂණ (Symptoms) — one per line",
@@ -347,7 +344,7 @@ function ArticlesTab() {
     warning_signs: {
       diseases:"⚠️ අනතුරු ලකුණු (Warning Signs) — one per line",
       symptoms:"⚠️ අනතුරු ලකුණු (Warning Signs) — one per line",
-      medicines:"⚠️ දරුණු අතුරු ආබාධ (Serious warnings) — one per line",
+      medicines:"අනතුරු ඇඟවීම් සහ වෙනත් ද්‍රව්‍ය සමඟ අන්තර්ක්‍රියා (Warnings & Interactions) — one per line",
       pregnancy:"⚠️ අනතුරු ලකුණු (Warning Signs) — one per line",
       child:"⚠️ අනතුරු ලකුණු (Warning Signs) — one per line",
       sexual:"⚠️ අනතුරු ලකුණු (Warning Signs) — one per line",
@@ -355,13 +352,13 @@ function ArticlesTab() {
     },
     treatment: {
       diseases:"ප්‍රතිකාරය (Treatment)",
-      medicines:"මාත්‍රාව (Dosage & How to take)",
+      medicines:"ඖෂධය භාවිතා කළ යුතු මාත්‍රාවන් සහ ක්‍රමවේද (Dosage & Administration)",
       tests:"ප්‍රතිඵල තේරුම (What results mean)",
     },
     selfcare: {
       diseases:"ස්ව-රැකවරණ (Self Care) — one per line",
       symptoms:"ස්ව-රැකවරණ (Self Care) — one per line",
-      medicines:"අතුරු ආබාධ (Side Effects) — one per line",
+      medicines:"ඇතිවිය හැකි අතුරු ආබාධ (Side Effects: What to Expect) — one per line",
       tests:"සූදානම (How to prepare) — one per line",
       pregnancy:"ස්ව-රැකවරණ (Self Care) — one per line",
       child:"ස්ව-රැකවරණ / ගෙදර ප්‍රතිකාරය — one per line",
@@ -379,7 +376,7 @@ function ArticlesTab() {
     see_doctor: {
       diseases:"වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?",
       symptoms:"වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?",
-      medicines:"වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?",
+      medicines:"වෛද්‍ය උපදෙස් සහ පසු විපරම් (Monitoring & Clinical Pearls)",
       tests:"වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?",
       pregnancy:"වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?",
       child:"වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?",
@@ -390,11 +387,11 @@ function ArticlesTab() {
   };
 
   return (<>
-<Input label="TITLE (SINHALA) *" value={form.title_si} onChange={f("title_si")} placeholder="රෝගයේ නම සිංහලෙන්" />
-<Input label="TITLE (ENGLISH)" value={form.title_en} onChange={f("title_en")} placeholder="Name in English" />
+    <Input label="TITLE (SINHALA) *" value={form.title_si} onChange={f("title_si")} placeholder="රෝගයේ නම සිංහලෙන්" />
+    <Input label="TITLE (ENGLISH)" value={form.title_en} onChange={f("title_en")} placeholder="Name in English" />
     <Textarea label="SUMMARY (1–2 lines for list view)" value={form.summary} onChange={f("summary")} rows={2}
       placeholder="Short description shown in category list..." hint="Shown under title in article list" />
-    <Textarea label="OVERVIEW" value={form.overview} onChange={f("overview")} rows={4}
+    <Textarea label={c === "medicines" ? "මේ ඖෂධය ශරීරය තුළ ක්‍රියා කරන්නේ කෙසේද? (What it is & How it Works)" : "OVERVIEW"} value={form.overview} onChange={f("overview")} rows={4}
       placeholder="Main explanation paragraph..." hint="First thing the reader sees" />
 
     {show.symptoms && (
@@ -431,7 +428,8 @@ function ArticlesTab() {
       <Textarea label={labels.see_doctor[c] || "වෛද්‍යවරයෙකු හමුවිය යුත්තේ කවදාද?"} value={form.see_doctor} onChange={f("see_doctor")} rows={2}
         placeholder="Describe when to seek urgent care..." hint="Free text — not a list" />
     )}
-<Input label="REVIEWER NAME & TITLE" value={form.reviewer} onChange={f("reviewer")} placeholder="Dr. Name, MBBS, MD, Hospital" />
+
+    <Input label="REVIEWER NAME & TITLE" value={form.reviewer} onChange={f("reviewer")} placeholder="Dr. Name, MBBS, MD, Hospital" />
     <Input label="REVIEWED DATE" value={form.reviewed_date} onChange={f("reviewed_date")} type="date" />
   </>);
 })()}
