@@ -275,12 +275,13 @@ function ArticleDetailScreen({ article, onBack }) {
     </>);
 
     if (c === "medicines") return (<>
-      <TextSection  title="1. දළ විශ්ලේෂණය"           text={a.overview} />
-      <ListSection  title="2. භාවිතා"                  items={a.symptoms} />
-      <TextSection  title="3. මාත්‍රාව"                text={a.treatment} />
-      <ListSection  title="4. අතුරු ආබාධ"              items={a.selfcare} />
-      <WarningBox   items={a.warning_signs} />
-      <SeeDoctorBox text={a.see_doctor} />
+      <TextSection  title="1. පොදු හැඳින්වීම"                                          text={a.overview} />
+      <TextSection  title="2. මේ ඖෂධය ශරීරය තුළ ක්‍රියා කරන්නේ කෙසේද?"                  text={a.summary} />
+      <ListSection  title="3. ඖෂධය භාවිතා කරන ප්‍රධාන රෝගී තත්ත්වයන්"                  items={a.symptoms} />
+      <TextSection  title="4. ඖෂධය භාවිතා කළ යුතු මාත්‍රාවන් සහ ක්‍රමවේද"               text={a.treatment} />
+      <ListSection  title="5. ඇතිවිය හැකි අතුරු ආබාධ"                                  items={a.selfcare} />
+      <ListSection  title="6. අනතුරු ඇඟවීම් සහ වෙනත් ද්‍රව්‍ය සමඟ අන්තර්ක්‍රියා"          items={a.warning_signs} />
+      <TextSection  title="7. වෛද්‍ය උපදෙස් සහ පසු විපරම්"                              text={a.see_doctor} />
     </>);
 
     if (c === "tests") return (<>
