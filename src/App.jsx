@@ -572,6 +572,86 @@ function PlaceCard({ name, district, phone, address, hours, badge1, badge1Color,
 }
 
 // ─── HospitalsScreen — loads from Supabase ───────────────────────────────────
+function HospitalDetailScreen({ hospital, onBack }) {
+  const h = hospital;
+  const [clinics, setClinics] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${SUPABASE_URL}/rest/v1/clinics?hospital_id=eq.${h.id}&select=*&order=created_at.asc`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    }).then(r => r.json()).then(d => {
+      setClinics(Array.isArray(d) ? d : []);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [h.id]);
+
+  return (
+    <div>
+      <BackBtn onClick={onBack} />
+      <div style={{ background: `linear-gradient(135deg,${T.tealDark},${T.teal})`, borderRadius: 16, padding: "20px 18px", marginBottom: 16 }}>
+        <div style={{ color: "#fff", fontWeight: 800, fontSize: 20, fontFamily: "Noto Sans Sinhala,sans-serif", marginBottom: 6 }}>🏥 {h.name}</div>
+        {h.address && <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 13 }}>📍 {h.address}</div>}
+        {h.district && <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 12, marginTop: 2 }}>{h.district}{h.division ? ` · ${h.division}` : ""}</div>}
+        <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+          {h.phone && (
+            <a href={`tel:${h.phone}`} style={{ background: "rgba(255,255,255,0.2)", color: "#fff", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>📞 {h.phone}</a>
+          )}
+          {h.emergency && (
+            <span style={{ background: T.emergency, color: "#fff", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 700 }}>🚨 24h Emergency</span>
+          )}
+        </div>
+      </div>
+
+      {h.hours && (
+        <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, padding: "12px 16px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 20 }}>⏰</span>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, letterSpacing: 1 }}>OPENING HOURS</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{h.hours}</div>
+          </div>
+        </div>
+      )}
+
+      {Array.isArray(h.services) && h.services.length > 0 && (
+        <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, padding: "12px 16px", marginBottom: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, letterSpacing: 1, marginBottom: 8 }}>SERVICES</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {h.services.map((s, i) => (
+              <span key={i} style={{ background: T.tealLight, color: T.tealDark, borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>{s}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{ fontWeight: 800, fontSize: 16, color: T.tealDark, margin: "16px 0 10px" }}>🩺 Clinic Sessions</div>
+
+      {loading ? <Spinner /> : clinics.length === 0 ? (
+        <EmptyState msg="Clinic session details not available yet." />
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {clinics.map((c, i) => (
+            <div key={c.id || i} style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, padding: "14px 16px" }}>
+              <div style={{ fontWeight: 800, fontSize: 15, color: T.tealDark, marginBottom: 6 }}>{c.clinic_name}</div>
+              {c.doctor && <div style={{ fontSize: 13, color: T.text, marginBottom: 4 }}>👨‍⚕️ {c.doctor}</div>}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+                {c.room && (
+                  <span style={{ background: T.tealLight, color: T.tealDark, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600 }}>🚪 {c.room}</span>
+                )}
+                {c.days && (
+                  <span style={{ background: "#EEF6FF", color: "#1565C0", borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600 }}>📅 {c.days}</span>
+                )}
+                {(c.time_start || c.time_end) && (
+                  <span style={{ background: "#FFF8E1", color: T.amber, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600 }}>⏰ {c.time_start}{c.time_end ? ` – ${c.time_end}` : ""}</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 function HospitalsScreen({ onBack }) {
   const [tab, setTab]           = useState("hospitals");
   const [search, setSearch]     = useState("");
@@ -580,6 +660,7 @@ function HospitalsScreen({ onBack }) {
   const [division, setDivision] = useState("සියල්ල");
   const [data, setData]         = useState({ hospitals:[], medical_centres:[], labs:[], pharmacies:[] });
   const [loading, setLoading]   = useState(true);
+const [selectedHospital, setSelectedHospital] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -622,7 +703,9 @@ function HospitalsScreen({ onBack }) {
   const cur = data[tab] || [];
   const filtered = cur.filter(i => matchLoc(i) && matchSearch(i));
   const counts = { hospitals: data.hospitals.length, medical_centres: data.medical_centres.length, labs: data.labs.length, pharmacies: data.pharmacies.length };
-
+if (selectedHospital) {
+    return <HospitalDetailScreen hospital={selectedHospital} onBack={() => setSelectedHospital(null)} />;
+  }
   return (
     <div>
       <BackBtn onClick={onBack}/>
@@ -685,10 +768,12 @@ function HospitalsScreen({ onBack }) {
       {loading ? <Spinner /> : filtered.length === 0 ? <EmptyState /> : (
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
           {tab === "hospitals" && filtered.map((h,i) => (
-            <PlaceCard key={h.id||i} name={h.name} district={h.district} phone={h.phone} address={h.address}
-              hours={h.hours || (h.emergency ? "24 පැය" : null)}
-              badge1={h.emergency ? "🚨 24h" : null} badge1Color={T.emergency}
-              badge2={Array.isArray(h.services) ? h.services[0] : null} />
+            <div key={h.id||i} onClick={() => setSelectedHospital(h)} style={{ cursor: "pointer" }}>
+              <PlaceCard name={h.name} district={h.district} phone={h.phone} address={h.address}
+                hours={h.hours || (h.emergency ? "24 පැය" : null)}
+                badge1={h.emergency ? "🚨 24h" : null} badge1Color={T.emergency}
+                badge2={Array.isArray(h.services) ? h.services[0] : null} />
+            </div>
           ))}
           {tab === "medical_centres" && filtered.map((c,i) => (
             <PlaceCard key={c.id||i} name={c.name} district={c.district} phone={c.phone} address={c.address} hours={c.hours} />
