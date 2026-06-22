@@ -1,3 +1,4 @@
+import LOCATION_DATA, { getAdminDistricts, getAdminDivisions } from "./locationData";
 import { useState, useEffect } from "react";
 
 // ─── Supabase ─────────────────────────────────────────────────────────────────
