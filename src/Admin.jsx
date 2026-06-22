@@ -670,10 +670,7 @@ function ClinicManager({ hospitalId }) {
     setEditingId(null);
   }
 
-  const DAY_OPTIONS = [
-    "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday",
-    "Mon–Fri","Mon, Wed, Fri","Tue, Thu","Daily",
-  ];
+ 
 
   return (
     <div style={{ marginTop: 16, borderTop: `2px dashed ${T.border}`, paddingTop: 16 }}>
