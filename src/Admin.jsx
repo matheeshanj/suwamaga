@@ -695,20 +695,36 @@ function ClinicManager({ hospitalId }) {
           <Input label="ROOM / WARD NO." value={form.room} onChange={f("room")} placeholder="Room 04 / Ward B" />
           <div style={{ marginBottom: 12 }}>
             <Label>AVAILABLE DAYS</Label>
-            <select
-              value={form.days}
-              onChange={e => setForm(p => ({ ...p, days: e.target.value }))}
-              style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: `1px solid ${T.border}`, fontSize: 14, color: T.text, background: T.surface, marginBottom: 6 }}
-            >
-              <option value="">-- Select days --</option>
-              {DAY_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-            <input
-              value={form.days}
-              onChange={e => setForm(p => ({ ...p, days: e.target.value }))}
-              placeholder="Or type custom days..."
-              style={{ width: "100%", boxSizing: "border-box", padding: "8px 12px", borderRadius: 8, border: `1px solid ${T.border}`, fontSize: 13, color: T.text }}
-            />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(day => {
+                const selected = (form.days || "").split(",").map(d => d.trim()).includes(day);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => {
+                      const current = (form.days || "").split(",").map(d => d.trim()).filter(Boolean);
+                      const updated = selected
+                        ? current.filter(d => d !== day)
+                        : [...current, day];
+                      setForm(p => ({ ...p, days: updated.join(", ") }));
+                    }}
+                    style={{
+                      padding: "8px 14px", borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: "pointer",
+                      border: `2px solid ${selected ? T.teal : T.border}`,
+                      background: selected ? T.teal : T.surface,
+                      color: selected ? "#fff" : T.muted,
+                    }}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
+            </div>
+            {form.days ? (
+              <div style={{ fontSize: 12, color: T.teal, marginTop: 6 }}>Selected: {form.days}</div>
+            ) : null}
+          </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <Input label="START TIME" value={form.time_start} onChange={f("time_start")} placeholder="8:00 AM" />
