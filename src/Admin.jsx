@@ -731,10 +731,11 @@ function MedicalTab() {
         <Input label="PHONE" value={form.phone} onChange={f("phone")} placeholder="0112345678" />
         <Input label="OPENING HOURS" value={form.hours} onChange={f("hours")} placeholder="24 පැය / 8:00–20:00" />
 
-        {subtab === "hospitals" && <>
+       {subtab === "hospitals" && <>
           <Textarea label="SERVICES (one per line)" value={form.services} onChange={f("services")}
             placeholder={"හදිසි ප්‍රතිකාර\nශල්‍යකර්ම\nICU\nළමා රෝග"} />
           <CheckboxField label="24-HOUR EMERGENCY?" checked={form.emergency} onChange={v => setForm(p => ({ ...p, emergency: v }))} caption="Has 24-hour emergency service" />
+          {editing !== "new" && <ClinicManager hospitalId={editing} />}
         </>}
 
         {subtab === "pharmacies" && (
