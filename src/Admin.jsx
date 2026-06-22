@@ -718,10 +718,9 @@ function ClinicManager({ hospitalId }) {
                 );
               })}
             </div>
-            {form.days ? (
+           {form.days ? (
               <div style={{ fontSize: 12, color: T.teal, marginTop: 6 }}>Selected: {form.days}</div>
             ) : null}
-          </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <Input label="START TIME" value={form.time_start} onChange={f("time_start")} placeholder="8:00 AM" />
