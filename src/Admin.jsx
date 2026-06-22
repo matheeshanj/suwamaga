@@ -1,9 +1,16 @@
 import { useState, useEffect } from "react";
 
+<<<<<<< HEAD
+// ─── Replace these with your Supabase credentials ────────────────────────────
+const SUPABASE_URL = "https://ccuwjdxydneocrxomcej.supabase.co/rest/v1/";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjdXdqZHh5ZG5lb2NyeG9tY2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2ODU5MzEsImV4cCI6MjA5NzI2MTkzMX0.2UN2GhIie01vqZUFXCWnn8Pv83PpITernuPDYVkCha8";
+const ADMIN_PASSWORD = "19065mnj"; // change this!
+=======
 // ─── Supabase credentials ────────────────────────────────────────────────────
 const SUPABASE_URL = "https://hjhjrbxrweozpwwpzwpx.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqaGpyYnhyd2VvenB3d3B6d3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDI2MDYsImV4cCI6MjA5NzI3ODYwNn0.U3CS-ALwQGPBhLbKUz1n2sckzx_jHPsWkGDSZH0jluI";
 const ADMIN_PASSWORD = "19065mnj"; // change this!
+>>>>>>> 890f497cae5fc557d245168d9b40d93f5b4b71cb
 
 // ─── Supabase helpers ─────────────────────────────────────────────────────────
 async function dbGet(table) {
@@ -547,8 +554,11 @@ function SpecialistsTab() {
         <Input label="QUALIFICATIONS (qual)" value={form.qual} onChange={f("qual")} placeholder="MBBS, MD (Internal Medicine), MRCP" />
         <Input label="SPECIALTY" value={form.specialty} onChange={f("specialty")} placeholder="cardiology" />
         <Input label="HOSPITAL" value={form.hospital} onChange={f("hospital")} placeholder="National Hospital Colombo" />
-        <Input label="DISTRICT (Sinhala)" value={form.district} onChange={f("district")} placeholder="කොළඹ" />
-        <Input label="DIVISION / TOWN" value={form.division} onChange={f("division")} placeholder="Colombo 08" />
+        const BLANK_SPECIALIST = {
+            name: "", qual: "", specialty: "", hospital: "",
+              district: "", division: "", phone: "", availability: "", opd: "",
+        };
+        }
         <Input label="PHONE" value={form.phone} onChange={f("phone")} placeholder="0112691111" />
         <Input label="AVAILABILITY / CLINIC TIMES" value={form.availability} onChange={f("availability")} placeholder="Mon, Wed, Fri 9am–1pm" />
         <Input label="OPD CHANNEL NUMBER / NOTES" value={form.opd} onChange={f("opd")} placeholder="Channel 3 / Walk-in" />
