@@ -602,6 +602,162 @@ const BLANK_FORMS = {
   medical_centres: { name: "", address: "", district: "", division: "", phone: "", hours: "" },
 };
 
+// ─── CLINIC MANAGER ───────────────────────────────────────────────────────────
+const BLANK_CLINIC = { clinic_name: "", doctor: "", room: "", days: "", time_start: "", time_end: "" };
+
+function ClinicManager({ hospitalId }) {
+  const [clinics, setClinics] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState(BLANK_CLINIC);
+  const [editingId, setEditingId] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState({ msg: "", type: "" });
+
+  function showToast(msg, type = "success") {
+    setToast({ msg, type });
+    setTimeout(() => setToast({ msg: "", type: "" }), 3000);
+  }
+
+  function load() {
+    setLoading(true);
+    fetch(`${SUPABASE_URL}/rest/v1/clinics?hospital_id=eq.${hospitalId}&select=*&order=created_at.asc`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    }).then(r => r.json()).then(d => {
+      setClinics(Array.isArray(d) ? d : []);
+      setLoading(false);
+    }).catch(() => { setLoading(false); showToast("Failed to load clinics", "error"); });
+  }
+
+  useEffect(() => { load(); }, [hospitalId]);
+
+  function f(key) { return val => setForm(prev => ({ ...prev, [key]: val })); }
+
+  async function save() {
+    if (!form.clinic_name.trim()) { showToast("Clinic name is required", "error"); return; }
+    setSaving(true);
+    const row = {
+      hospital_id: hospitalId,
+      clinic_name: form.clinic_name.trim(),
+      doctor:      form.doctor.trim(),
+      room:        form.room.trim(),
+      days:        form.days.trim(),
+      time_start:  form.time_start.trim(),
+      time_end:    form.time_end.trim(),
+    };
+    try {
+      if (editingId === "new") {
+        const result = await dbInsert("clinics", row);
+        if (result?.code) throw new Error(result.message);
+        showToast("✅ Clinic added!");
+      } else {
+        const result = await dbUpdate("clinics", editingId, row);
+        if (result?.code) throw new Error(result.message);
+        showToast("✅ Clinic updated!");
+      }
+      load();
+      setEditingId(null);
+    } catch (e) {
+      showToast("Error: " + (e.message || "Check Supabase"), "error");
+    }
+    setSaving(false);
+  }
+
+  async function del(id) {
+    if (!window.confirm("Delete this clinic session?")) return;
+    await dbDelete("clinics", id);
+    showToast("Deleted.");
+    load();
+    setEditingId(null);
+  }
+
+  const DAY_OPTIONS = [
+    "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday",
+    "Mon–Fri","Mon, Wed, Fri","Tue, Thu","Daily",
+  ];
+
+  return (
+    <div style={{ marginTop: 16, borderTop: `2px dashed ${T.border}`, paddingTop: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <div style={{ fontWeight: 800, fontSize: 14, color: T.tealDark }}>🏥 Clinic Sessions</div>
+        <button onClick={() => { setForm(BLANK_CLINIC); setEditingId("new"); }}
+          style={{ background: T.teal, color: "#fff", border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+          + Add Clinic
+        </button>
+      </div>
+
+      {editingId !== null && (
+        <div style={{ background: T.tealLight, borderRadius: 10, padding: 14, marginBottom: 12 }}>
+          <div style={{ fontWeight: 700, fontSize: 13, color: T.tealDark, marginBottom: 10 }}>
+            {editingId === "new" ? "➕ New Clinic Session" : "✏️ Edit Clinic Session"}
+          </div>
+          <Input label="CLINIC NAME *" value={form.clinic_name} onChange={f("clinic_name")} placeholder="Cardiology Clinic / OPD" />
+          <Input label="DOCTOR NAME" value={form.doctor} onChange={f("doctor")} placeholder="Dr. Nalaka Perera" />
+          <Input label="ROOM / WARD NO." value={form.room} onChange={f("room")} placeholder="Room 04 / Ward B" />
+          <div style={{ marginBottom: 12 }}>
+            <Label>AVAILABLE DAYS</Label>
+            <select
+              value={form.days}
+              onChange={e => setForm(p => ({ ...p, days: e.target.value }))}
+              style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: `1px solid ${T.border}`, fontSize: 14, color: T.text, background: T.surface, marginBottom: 6 }}
+            >
+              <option value="">-- Select days --</option>
+              {DAY_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            <input
+              value={form.days}
+              onChange={e => setForm(p => ({ ...p, days: e.target.value }))}
+              placeholder="Or type custom days..."
+              style={{ width: "100%", boxSizing: "border-box", padding: "8px 12px", borderRadius: 8, border: `1px solid ${T.border}`, fontSize: 13, color: T.text }}
+            />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <Input label="START TIME" value={form.time_start} onChange={f("time_start")} placeholder="8:00 AM" />
+            <Input label="END TIME" value={form.time_end} onChange={f("time_end")} placeholder="12:00 PM" />
+          </div>
+          <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+            <button onClick={save} disabled={saving} style={{ flex: 1, background: T.teal, color: "#fff", border: "none", borderRadius: 8, padding: "10px", fontSize: 14, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1 }}>
+              {saving ? "Saving..." : "💾 Save"}
+            </button>
+            <button onClick={() => setEditingId(null)} style={{ flex: 1, background: "none", border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px", fontSize: 14, cursor: "pointer", color: T.muted }}>
+              Cancel
+            </button>
+          </div>
+          {editingId !== "new" && (
+            <button onClick={() => del(editingId)} style={{ marginTop: 8, width: "100%", background: "none", border: `1px solid ${T.red}`, color: T.red, borderRadius: 8, padding: "8px", fontSize: 13, cursor: "pointer" }}>
+              🗑 Delete Session
+            </button>
+          )}
+        </div>
+      )}
+
+      {loading ? (
+        <div style={{ fontSize: 13, color: T.muted, padding: "8px 0" }}>Loading clinics...</div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {clinics.length === 0 && (
+            <div style={{ fontSize: 13, color: T.muted, textAlign: "center", padding: 12 }}>No clinic sessions added yet.</div>
+          )}
+          {clinics.map(c => (
+            <button key={c.id} onClick={() => {
+              setForm({ clinic_name: c.clinic_name, doctor: c.doctor || "", room: c.room || "", days: c.days || "", time_start: c.time_start || "", time_end: c.time_end || "" });
+              setEditingId(c.id);
+            }} style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 14px", textAlign: "left", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: T.text }}>{c.clinic_name}</div>
+                <div style={{ fontSize: 12, color: T.muted }}>
+                  {c.doctor && `${c.doctor} · `}{c.room && `${c.room} · `}{c.days}{c.time_start && ` · ${c.time_start}${c.time_end ? `–${c.time_end}` : ""}`}
+                </div>
+              </div>
+              <span style={{ color: T.teal, fontSize: 16 }}>✏️</span>
+            </button>
+          ))}
+        </div>
+      )}
+      <Toast {...toast} />
+    </div>
+  );
+}
+
 function MedicalTab() {
   const [subtab, setSubtab] = useState("hospitals");
   const [list, setList] = useState([]);
