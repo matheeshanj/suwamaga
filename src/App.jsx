@@ -98,7 +98,11 @@ function getDistricts(province) {
 
 function getDivisions(province, district) {
   if (!district || district === "සියල්ල") return ["සියල්ල"];
-  return ["සියල්ල", ...getAdminDivisions(province, district)];
+  const resolvedProvince = province !== "සියල්ල"
+    ? province
+    : Object.keys(LOCATION_DATA).find(p => district in LOCATION_DATA[p]);
+  if (!resolvedProvince) return ["සියල්ල"];
+  return ["සියල්ල", ...getAdminDivisions(resolvedProvince, district)];
 }
 
 const HEALTH_TABS = [
