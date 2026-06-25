@@ -223,6 +223,13 @@ function ArticleDetailScreen({ article, onBack }) {
   function renderSections() {
     const c = a.category;
 
+    // Free-form categories use rich HTML content from the editor
+    if (FREE_FORM_CATEGORIES.includes(c)) return (<>
+      <RichContent html={a.rich_content} />
+      <WarningBox items={a.warning_signs} />
+      <SeeDoctorBox text={a.see_doctor} />
+    </>);
+
     if (c === "diseases") return (<>
       <TextSection  title="1. දළ විශ්ලේෂණය"           text={a.overview} />
       <ListSection  title="2. ලක්ෂණ"                   items={a.symptoms} />
@@ -317,11 +324,6 @@ function ArticleDetailScreen({ article, onBack }) {
       <ListSection  title="5. වැළැක්වීම"               items={a.prevention} />
       <SeeDoctorBox text={a.see_doctor} />
     </>);
-
-    // free-form categories — use rich_content HTML
-    if (FREE_FORM_CATEGORIES.includes(c)) return (
-      <RichContent html={a.rich_content} />
-    );
 
     // fallback — show everything
     return (<>
