@@ -259,10 +259,10 @@ function ArticleDetailScreen({ article, onBack }) {
     </>);
 
     if (c === "tests") return (<>
-      <TextSection  title="1. දළ විශ්ලේෂණය"           text={a.overview} />
-      <ListSection  title="2. මෙය අවශ්‍ය වන්නේ කවදාද?" items={a.causes} />
-      <ListSection  title="3. සූදානම"                  items={a.selfcare} />
-      <TextSection  title="4. ප්‍රතිඵල තේරුම"         text={a.treatment} />
+      <TextSection  title="1. දළ අදහස"           text={a.overview} />
+      <ListSection  title="2. මෙය අවශ්‍ය වන්නේ ඇයි" items={a.causes} />
+      <ListSection  title="3. සූදානම් වීම"                  items={a.selfcare} />
+      <TextSection  title="4. ප්‍රතිඵල වල තේරුම"         text={a.treatment} />
       <SeeDoctorBox text={a.see_doctor} />
     </>);
 
