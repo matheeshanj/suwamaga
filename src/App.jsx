@@ -1011,8 +1011,8 @@ function AskExpertScreen({ onBack }) {
 // ─── AboutUsScreen ────────────────────────────────────────────────────────────
 function AboutUsScreen({ onBack }) {
   const team = [
-    { name:"Dr. Matheesha N Jayarathne", role:"වෛද්‍ය නිලධාරී , qual:"MBBS (Sri Lanka)", hospital:"Teaching Hospital Kurunegala" },
-    { name:"Dr. Sandamini Panagoda",     role:"වෛද්‍ය නිලධාරී",  qual:"MBBS (Sri Lanka)", hospital:"Teaching Hospital Rathnapura" },
+    { name:"Dr. Matheesha N Jayarathne", role:"වෛද්‍ය නිලධාරී", qual:"MBBS (Sri Lanka)", hospital:"Teaching Hospital Kurunegala" },
+    { name:"Dr. Sandamini Panagoda",role:"වෛද්‍ය නිලධාරී",  qual:"MBBS (Sri Lanka)", hospital:"Teaching Hospital Rathnapura" },
   ];
   return (
     <div>
