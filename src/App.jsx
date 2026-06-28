@@ -150,7 +150,7 @@ function EmptyState({ msg }) {
 }
 
 // ─── RichContent renderer for free-form categories ───────────────────────────
-const FREE_FORM_CATEGORIES = ["pregnancy","child","mental","firstaid","nutrition","prevention","sexual"];
+const FREE_FORM_CATEGORIES = ["pregnancy","child","mental","firstaid","nutrition","prevention","sexual","tests"];
 
 function RichContent({ html }) {
   if (!html) return null;
