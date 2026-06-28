@@ -1102,3 +1102,4 @@ function ArticleDirectLoader({ articleId, onBack, onNav }) {
   if (!article) return <EmptyState msg="ලිපිය සොයාගත නොහැකි විය." />;
   return <ArticleDetailScreen article={article} onBack={onBack} onNav={onNav} />;
 }
+
