@@ -311,7 +311,7 @@ function CategoryHint({ category }) {
 }
 
 // ─── RichTextEditor ───────────────────────────────────────────────────────────
-const FREE_FORM_CATEGORIES = ["pregnancy","child","mental","firstaid","nutrition","prevention","sexual","test"];
+const FREE_FORM_CATEGORIES = ["pregnancy","child","mental","firstaid","nutrition","prevention","sexual","tests"];
 
 function RichTextEditor({ value, onChange }) {
   const [focused, setFocused] = useState(false);
