@@ -660,7 +660,7 @@ function HospitalsScreen({ onBack }) {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      dbGet("hospitals"),
+      (async () => { let all=[],from=0; while(true){ const r=await fetch(`${SUPABASE_URL}/rest/v1/hospitals?select=*&order=created_at.desc`,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`,"Range-Unit":"items","Range":`${from}-${from+999}`}}); const d=await r.json(); if(!Array.isArray(d)||d.length===0) break; all=[...all,...d]; if(d.length<1000) break; from+=1000; } return all; })(),
       dbGet("medical_centres"),
       dbGet("labs"),
       dbGet("pharmacies"),
