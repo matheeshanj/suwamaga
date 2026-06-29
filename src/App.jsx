@@ -7,7 +7,13 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 async function dbGet(table, extra = "") {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*${extra}&order=created_at.desc`, {
-    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Range-Unit": "items",
+      "Range": "0-2999",
+      Prefer: "count=none",
+    },
   });
   return res.json();
 }
