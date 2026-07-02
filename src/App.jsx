@@ -538,11 +538,15 @@ function HomeScreen({ onNav, onSearch }) {
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
         {CATEGORIES.map(c => (
           <button key={c.id} onClick={() => onNav(c.id)} style={{
+            position:"relative",
             background:T.surface, border:`1px solid ${T.border}`, borderRadius:12,
             padding:"0 8px", cursor:"pointer", textAlign:"center",
             boxShadow:"0 1px 4px rgba(0,0,0,0.06)",
             display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4, minHeight:88,
           }}>
+            {c.id === "hospitals" && (
+              <span style={{ position:"absolute", top:8, right:8, width:9, height:9, borderRadius:"50%", background:T.emergency, border:"2px solid #fff" }} />
+            )}
             <div style={{ fontSize:24 }}>{c.emoji}</div>
             <div style={{ fontSize:11, fontFamily:"Noto Sans Sinhala,sans-serif", color:T.text, fontWeight:600, lineHeight:1.3 }}>{c.si}</div>
           </button>
