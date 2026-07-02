@@ -1241,7 +1241,13 @@ export default function App() {
             color:botNav === item.id ? T.teal : T.muted,
             borderTop:botNav === item.id ? `3px solid ${T.teal}` : "3px solid transparent",
           }}>
-            <span style={{ fontSize:20 }}>{item.emoji}</span>
+            
+<span style={{ fontSize:20, position:"relative", display:"inline-block" }}>
+              {item.emoji}
+              {item.id === "hospitals" && (
+                <span style={{ position:"absolute", top:-2, right:-4, width:8, height:8, borderRadius:"50%", background:T.emergency, border:"2px solid #fff" }} />
+              )}
+            </span>
             <span style={{ fontSize:10, fontWeight:600, fontFamily:"Noto Sans Sinhala,sans-serif", marginTop:2 }}>{item.label}</span>
           </button>
         ))}
