@@ -32,8 +32,8 @@ async function dbInsert(table, row) {
   return res.json();
 }
 
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import MarkerClusterGroup from "react-leaflet-cluster";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -48,6 +48,29 @@ const hospitalIcon = new L.Icon({
   popupAnchor: [1, -34],
   shadowSize: [41, 41],
 });
+
+const userIcon = new L.DivIcon({
+  className: "",
+  html: `<div style="width:16px;height:16px;border-radius:50%;background:#1565C0;border:3px solid #fff;box-shadow:0 0 0 6px rgba(21,101,192,0.25);"></div>`,
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+});
+
+function distanceKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function FlyToUser({ position }) {
+  const map = useMap();
+  useEffect(() => {
+    if (position) map.flyTo(position, 12, { duration: 1.2 });
+  }, [position]);
+  return null;
+}
 
 // ─── colours ──────────────────────────────────────────────────────────────────
 const T = {
@@ -586,35 +609,96 @@ function PlaceCard({ name, district, phone, address, hours, badge1, badge1Color,
     </div>
   );
 }
-
 function HospitalsMap({ hospitals, onSelect }) {
+  const [userPos, setUserPos] = useState(null);
+  const [locating, setLocating] = useState(false);
+  const [locErr, setLocErr] = useState("");
+
   const withCoords = hospitals.filter(h => h.lat && h.lng);
+
+  function locateMe() {
+    if (!navigator.geolocation) {
+      setLocErr("ඔබේ උපාංගය ස්ථාන සේවාවට සහාය නොදක්වයි.");
+      return;
+    }
+    setLocating(true);
+    setLocErr("");
+    navigator.geolocation.getCurrentPosition(
+      pos => { setUserPos([pos.coords.latitude, pos.coords.longitude]); setLocating(false); },
+      () => { setLocErr("ස්ථානය ලබාගත නොහැක. ස්ථාන අවසරය දී නැවත උත්සාහ කරන්න."); setLocating(false); },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  const nearest = userPos
+    ? [...withCoords]
+        .map(h => ({ ...h, _dist: distanceKm(userPos[0], userPos[1], h.lat, h.lng) }))
+        .sort((a, b) => a._dist - b._dist)
+        .slice(0, 5)
+    : [];
 
   if (withCoords.length === 0) {
     return <EmptyState msg="මෙම සෙවුමට සිතියම් ස්ථාන දත්ත නොමැත." />;
   }
 
   return (
-    <div style={{ borderRadius:12, overflow:"hidden", border:`1px solid ${T.border}`, height:420 }}>
-      <MapContainer center={[7.8731, 80.7718]} zoom={8} style={{ height:"100%", width:"100%" }}>
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; OpenStreetMap contributors'
-        />
-        <MarkerClusterGroup chunkedLoading>
-          {withCoords.map((h,i) => (
-            <Marker key={h.id||i} position={[h.lat, h.lng]} icon={hospitalIcon}>
-              <Popup>
-                <div style={{ fontFamily:"Noto Sans Sinhala,sans-serif", fontSize:13 }}>
-                  <div style={{ fontWeight:700, marginBottom:4 }}>{h.name}</div>
-                  {h.district && <div style={{ color:"#607D7B", marginBottom:6 }}>{h.district}</div>}
-                  <button onClick={() => onSelect(h)} style={{ background:T.teal, color:"#fff", border:"none", borderRadius:6, padding:"4px 10px", fontSize:12, cursor:"pointer" }}>විස්තර බලන්න →</button>
-                </div>
-              </Popup>
+    <div>
+      <button onClick={locateMe} disabled={locating} style={{
+        width: "100%", marginBottom: 10,
+        background: userPos ? T.tealLight : T.teal, color: userPos ? T.teal : "#fff",
+        border: `2px solid ${T.teal}`, borderRadius: 10, padding: "11px", fontSize: 14,
+        fontWeight: 700, fontFamily: "Noto Sans Sinhala,sans-serif",
+        cursor: locating ? "not-allowed" : "pointer",
+      }}>
+        {locating ? "⏳ සොයමින්..." : userPos ? "📍 ස්ථානය යාවත්කාලීන කරන්න" : "📍 මගේ ළඟම රෝහල් සොයන්න"}
+      </button>
+      {locErr && <div style={{ fontSize: 12, color: T.emergency, marginBottom: 8, fontFamily: "Noto Sans Sinhala,sans-serif" }}>{locErr}</div>}
+
+      <div style={{ borderRadius: 12, overflow: "hidden", border: `1px solid ${T.border}`, height: 420, marginBottom: userPos ? 14 : 0 }}>
+        <MapContainer center={userPos || [7.8731, 80.7718]} zoom={userPos ? 12 : 8} style={{ height: "100%", width: "100%" }}>
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; OpenStreetMap contributors'
+          />
+          {userPos && <FlyToUser position={userPos} />}
+          {userPos && (
+            <Marker position={userPos} icon={userIcon}>
+              <Popup>ඔබ මෙතන සිටී</Popup>
             </Marker>
-          ))}
-        </MarkerClusterGroup>
-      </MapContainer>
+          )}
+          <MarkerClusterGroup chunkedLoading>
+            {withCoords.map((h, i) => (
+              <Marker key={h.id || i} position={[h.lat, h.lng]} icon={hospitalIcon}>
+                <Popup>
+                  <div style={{ fontFamily: "Noto Sans Sinhala,sans-serif", fontSize: 13 }}>
+                    <div style={{ fontWeight: 700, marginBottom: 4 }}>{h.name}</div>
+                    {h.district && <div style={{ color: "#607D7B", marginBottom: 6 }}>{h.district}</div>}
+                    {userPos && <div style={{ color: T.teal, fontWeight: 700, marginBottom: 6 }}>📍 {distanceKm(userPos[0], userPos[1], h.lat, h.lng).toFixed(1)} km</div>}
+                    <button onClick={() => onSelect(h)} style={{ background: T.teal, color: "#fff", border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 12, cursor: "pointer" }}>විස්තර බලන්න →</button>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+          </MarkerClusterGroup>
+        </MapContainer>
+      </div>
+
+      {userPos && nearest.length > 0 && (
+        <div>
+          <div style={{ fontWeight: 800, fontSize: 14, color: T.tealDark, fontFamily: "Noto Sans Sinhala,sans-serif", marginBottom: 8 }}>🏥 ළඟම රෝහල්</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {nearest.map((h, i) => (
+              <div key={h.id || i} onClick={() => onSelect(h)} style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 14px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: T.text, fontFamily: "Noto Sans Sinhala,sans-serif" }}>{h.name}</div>
+                  {h.district && <div style={{ fontSize: 12, color: T.muted }}>{h.district}</div>}
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: T.teal, whiteSpace: "nowrap" }}>{h._dist.toFixed(1)} km</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
