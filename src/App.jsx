@@ -32,6 +32,23 @@ async function dbInsert(table, row) {
   return res.json();
 }
 
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+
+const hospitalIcon = new L.Icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
 // ─── colours ──────────────────────────────────────────────────────────────────
 const T = {
   bg:        "#F7FAFA",
@@ -570,6 +587,39 @@ function PlaceCard({ name, district, phone, address, hours, badge1, badge1Color,
   );
 }
 
+function HospitalsMap({ hospitals, onSelect }) {
+  const withCoords = hospitals.filter(h => h.lat && h.lng);
+
+  if (withCoords.length === 0) {
+    return <EmptyState msg="මෙම සෙවුමට සිතියම් ස්ථාන දත්ත නොමැත." />;
+  }
+
+  return (
+    <div style={{ borderRadius:12, overflow:"hidden", border:`1px solid ${T.border}`, height:420 }}>
+      <MapContainer center={[7.8731, 80.7718]} zoom={8} style={{ height:"100%", width:"100%" }}>
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; OpenStreetMap contributors'
+        />
+        <MarkerClusterGroup chunkedLoading>
+          {withCoords.map((h,i) => (
+            <Marker key={h.id||i} position={[h.lat, h.lng]} icon={hospitalIcon}>
+              <Popup>
+                <div style={{ fontFamily:"Noto Sans Sinhala,sans-serif", fontSize:13 }}>
+                  <div style={{ fontWeight:700, marginBottom:4 }}>{h.name}</div>
+                  {h.district && <div style={{ color:"#607D7B", marginBottom:6 }}>{h.district}</div>}
+                  <button onClick={() => onSelect(h)} style={{ background:T.teal, color:"#fff", border:"none", borderRadius:6, padding:"4px 10px", fontSize:12, cursor:"pointer" }}>විස්තර බලන්න →</button>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MarkerClusterGroup>
+      </MapContainer>
+    </div>
+  );
+}
+
+
 // ─── HospitalDetailScreen ─────────────────────────────────────────────────────
 function HospitalDetailScreen({ hospital, onBack }) {
   const h = hospital;
@@ -656,6 +706,7 @@ function HospitalsScreen({ onBack }) {
   const [data, setData]         = useState({ hospitals:[], medical_centres:[], labs:[], pharmacies:[] });
   const [loading, setLoading]   = useState(true);
   const [selectedHospital, setSelectedHospital] = useState(null);
+  const [view, setView] = useState("list");
 
   useEffect(() => {
     setLoading(true);
@@ -664,9 +715,17 @@ function HospitalsScreen({ onBack }) {
       dbGet("medical_centres"),
       dbGet("labs"),
       dbGet("pharmacies"),
-    ]).then(([h, mc, l, p]) => {
+      dbGet("hospital_coordinates"),
+    ]).then(([h, mc, l, p, coords]) => {
+      const coordMap = {};
+      (Array.isArray(coords) ? coords : []).forEach(c => { coordMap[c.hospital_id] = c; });
+      const hospitalsWithCoords = (Array.isArray(h) ? h : []).map(hosp => ({
+        ...hosp,
+        lat: coordMap[hosp.id]?.lat ?? null,
+        lng: coordMap[hosp.id]?.lng ?? null,
+      }));
       setData({
-        hospitals:       Array.isArray(h)  ? h  : [],
+        hospitals:       hospitalsWithCoords,
         medical_centres: Array.isArray(mc) ? mc : [],
         labs:            Array.isArray(l)  ? l  : [],
         pharmacies:      Array.isArray(p)  ? p  : [],
@@ -727,6 +786,13 @@ function HospitalsScreen({ onBack }) {
         ))}
       </div>
 
+      {tab === "hospitals" && (
+        <div style={{ display:"flex", gap:6, marginBottom:10 }}>
+          <button onClick={() => setView("list")} style={{ flex:1, padding:"8px", borderRadius:8, border:`2px solid ${view==="list"?T.teal:T.border}`, background:view==="list"?T.tealLight:T.surface, fontWeight:700, fontSize:13, color:view==="list"?T.teal:T.muted, cursor:"pointer", fontFamily:"Noto Sans Sinhala,sans-serif" }}>📋 ලැයිස්තුව</button>
+          <button onClick={() => setView("map")} style={{ flex:1, padding:"8px", borderRadius:8, border:`2px solid ${view==="map"?T.teal:T.border}`, background:view==="map"?T.tealLight:T.surface, fontWeight:700, fontSize:13, color:view==="map"?T.teal:T.muted, cursor:"pointer", fontFamily:"Noto Sans Sinhala,sans-serif" }}>🗺️ සිතියම</button>
+        </div>
+      )}
+
       <div style={{ position:"relative", marginBottom:10 }}>
         <span style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", fontSize:15 }}>🔍</span>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="නමෙන් හෝ ලිපිනයෙන් සොයන්න..."
@@ -759,9 +825,11 @@ function HospitalsScreen({ onBack }) {
         )}
       </div>
 
-      {loading ? <Spinner /> : filtered.length === 0 ? <EmptyState /> : (
+      {loading ? <Spinner /> : tab === "hospitals" && view === "map" ? (
+        <HospitalsMap hospitals={filtered} onSelect={setSelectedHospital} />
+      ) : filtered.length === 0 ? <EmptyState /> : (
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          {tab === "hospitals" && filtered.map((h,i) => (
+          {tab === "hospitals" && view === "list" && filtered.map((h,i) => (
             <div key={h.id||i} onClick={() => setSelectedHospital(h)} style={{ cursor:"pointer" }}>
               <PlaceCard name={h.name} district={h.district} phone={h.phone} address={h.address}
                 hours={h.hours || (h.emergency ? "24 පැය" : null)}
