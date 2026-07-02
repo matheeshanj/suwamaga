@@ -883,8 +883,11 @@ function HospitalsScreen({ onBack }) {
           style={{ ...selCls, paddingLeft:38 }} />
       </div>
 
+
+{!(tab === "hospitals" && view === "map") && (
       <div style={{ background:T.tealLight, borderRadius:10, padding:"10px 12px", marginBottom:10 }}>
-        <div style={{ fontSize:11, fontWeight:700, color:T.tealDark, fontFamily:"Noto Sans Sinhala,sans-serif", marginBottom:6 }}>📍 ස්ථානය අනුව සෙවීම</div>
+        
+<div style={{ fontSize:11, fontWeight:700, color:T.tealDark, fontFamily:"Noto Sans Sinhala,sans-serif", marginBottom:6 }}>📍 ස්ථානය අනුව සෙවීම</div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6, marginBottom:showDiv ? 6 : 0 }}>
           <div>
             <div style={{ fontSize:10, color:T.muted, marginBottom:3, fontFamily:"Noto Sans Sinhala,sans-serif" }}>පළාත</div>
@@ -908,6 +911,7 @@ function HospitalsScreen({ onBack }) {
           </div>
         )}
       </div>
+)}
 
       {loading ? <Spinner /> : tab === "hospitals" && view === "map" ? (
         <HospitalsMap hospitals={filtered} onSelect={setSelectedHospital} />
