@@ -106,6 +106,28 @@ async function dbDelete(table, id) {
   });
 }
 
+async function saveHospitalCoords(hospitalId, lat, lng) {
+  if (lat === "" && lng === "") return; // nothing entered, skip silently
+  const latNum = lat !== "" && lat !== null ? parseFloat(lat) : null;
+  const lngNum = lng !== "" && lng !== null ? parseFloat(lng) : null;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/hospital_coordinates?hospital_id=eq.${hospitalId}`, {
+    method: "PATCH",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify({ lat: latNum, lng: lngNum }),
+  });
+  const data = await res.json();
+  if (!Array.isArray(data) || data.length === 0) {
+    await dbInsert("hospital_coordinates", { hospital_id: hospitalId, lat: latNum, lng: lngNum });
+  }
+}
+
+
 // ─── colours ──────────────────────────────────────────────────────────────────
 const T = {
   bg: "#F7FAFA", surface: "#FFFFFF", teal: "#00796B", tealLight: "#E0F2F1",
@@ -733,7 +755,7 @@ const MEDICAL_SUBTABS = [
 ];
 
 const BLANK_FORMS = {
-  hospitals:       { name: "", address: "", district: "", division: "", phone: "", services: "", hours: "", emergency: false },
+  hospitals:       { name: "", address: "", district: "", division: "", phone: "", services: "", hours: "", emergency: false, lat: "", lng: "" },
   pharmacies:      { name: "", address: "", district: "", division: "", phone: "", hours: "", delivery: false },
   labs:            { name: "", address: "", district: "", division: "", phone: "", hours: "", home_service: false, tests: "" },
   medical_centres: { name: "", address: "", district: "", division: "", phone: "", hours: "" },
@@ -900,6 +922,7 @@ function MedicalTab() {
   const [form, setForm] = useState(BLANK_FORMS.hospitals);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState({ msg: "", type: "" });
+  const [sortAsc, setSortAsc] = useState(true);
 
   function showToast(msg, type = "success") { setToast({ msg, type }); setTimeout(() => setToast({ msg: "", type: "" }), 3000); }
 
@@ -923,9 +946,22 @@ function MedicalTab() {
 
   function startNew() { setForm({ ...BLANK_FORMS[subtab] }); setEditing("new"); }
 
-  function startEdit(item) {
-    setForm({ ...BLANK_FORMS[subtab], ...item, services: arrToStr(item.services), tests: arrToStr(item.tests) });
+  async function startEdit(item) {
+    setForm({ ...BLANK_FORMS[subtab], ...item, services: arrToStr(item.services), tests: arrToStr(item.tests), lat: "", lng: "" });
     setEditing(item.id);
+
+    if (subtab === "hospitals") {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/hospital_coordinates?hospital_id=eq.${item.id}&select=*`, {
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+        });
+        const data = await res.json();
+        const coord = Array.isArray(data) && data[0] ? data[0] : null;
+        setForm(p => ({ ...p, lat: coord?.lat != null ? String(coord.lat) : "", lng: coord?.lng != null ? String(coord.lng) : "" }));
+      } catch {
+        // silently leave lat/lng blank if this fails
+      }
+    }
   }
 
   function toArray(str) {
@@ -946,14 +982,19 @@ function MedicalTab() {
       row = { name: form.name.trim(), address: form.address.trim(), district: form.district.trim(), division: form.division.trim(), phone: form.phone.trim(), hours: form.hours.trim() };
     }
     try {
+      let hospitalId = editing;
       if (editing === "new") {
         const result = await dbInsert(subtab, row);
         if (result?.code) throw new Error(result.message);
+        if (subtab === "hospitals" && Array.isArray(result) && result[0]) hospitalId = result[0].id;
         showToast("✅ Saved!");
       } else {
         const result = await dbUpdate(subtab, editing, row);
         if (result?.code) throw new Error(result.message);
         showToast("✅ Updated!");
+      }
+      if (subtab === "hospitals" && hospitalId && hospitalId !== "new") {
+        await saveHospitalCoords(hospitalId, form.lat, form.lng);
       }
       load(); setEditing(null);
     } catch (e) { showToast("Error: " + (e.message || "Check Supabase"), "error"); }
@@ -966,6 +1007,12 @@ function MedicalTab() {
   }
 
   const currentLabel = MEDICAL_SUBTABS.find(s => s.id === subtab)?.label;
+
+  const sortedList = [...list].sort((a, b) => {
+    const nameA = (a.name || "").toLowerCase();
+    const nameB = (b.name || "").toLowerCase();
+    return sortAsc ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+  });
 
   if (editing !== null) return (
     <div>
@@ -983,6 +1030,13 @@ function MedicalTab() {
         {subtab === "hospitals" && <>
           <Textarea label="SERVICES (one per line)" value={form.services} onChange={f("services")} placeholder={"හදිසි ප්‍රතිකාර\nශල්‍යකර්ම\nICU\nළමා රෝග"} />
           <CheckboxField label="24-HOUR EMERGENCY?" checked={form.emergency} onChange={v => setForm(p => ({ ...p, emergency: v }))} caption="Has 24-hour emergency service" />
+          <FieldGroup title="📍 Map Coordinates">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <Input label="LATITUDE" value={form.lat} onChange={f("lat")} placeholder="7.8731" />
+              <Input label="LONGITUDE" value={form.lng} onChange={f("lng")} placeholder="80.7718" />
+            </div>
+            <div style={{ fontSize: 11, color: T.muted, marginTop: -6 }}>Leave both blank if unknown — the hospital just won't show a map marker yet.</div>
+          </FieldGroup>
           {editing !== "new" && <ClinicManager hospitalId={editing} />}
         </>}
         {subtab === "pharmacies" && (
@@ -1010,13 +1064,18 @@ function MedicalTab() {
           }}>{s.label}</button>
         ))}
       </div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, gap: 8 }}>
         <div style={{ fontWeight: 800, fontSize: 18, color: T.text }}>{currentLabel} ({list.length})</div>
-        <button onClick={startNew} style={{ background: T.teal, color: "#fff", border: "none", borderRadius: 10, padding: "10px 18px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>+ Add</button>
+        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+          <button onClick={() => setSortAsc(s => !s)} title="Toggle A-Z / Z-A sort" style={{ background: T.surface, border: `2px solid ${T.border}`, borderRadius: 10, padding: "9px 12px", fontSize: 13, fontWeight: 700, color: T.teal, cursor: "pointer" }}>
+            {sortAsc ? "A→Z" : "Z→A"}
+          </button>
+          <button onClick={startNew} style={{ background: T.teal, color: "#fff", border: "none", borderRadius: 10, padding: "10px 18px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>+ Add</button>
+        </div>
       </div>
       {loading ? <div style={{ textAlign: "center", padding: 40, color: T.muted }}>Loading...</div> : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {list.map(item => (
+          {sortedList.map(item => (
             <button key={item.id} onClick={() => startEdit(item)}
               style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", textAlign: "left" }}>
               <div>
@@ -1031,14 +1090,13 @@ function MedicalTab() {
               <span style={{ color: T.teal, fontSize: 18 }}>›</span>
             </button>
           ))}
-          {list.length === 0 && <div style={{ textAlign: "center", padding: 40, color: T.muted }}>Nothing added yet. Click "+ Add" to start.</div>}
+          {sortedList.length === 0 && <div style={{ textAlign: "center", padding: 40, color: T.muted }}>Nothing added yet. Click "+ Add" to start.</div>}
         </div>
       )}
       <Toast {...toast} />
     </div>
   );
 }
-
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
 function LoginScreen({ onLogin }) {
   const [pw, setPw] = useState("");
