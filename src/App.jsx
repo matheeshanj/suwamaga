@@ -33,7 +33,7 @@ async function dbInsert(table, row) {
 }
 
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-
+import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
